@@ -16,9 +16,10 @@ Q. 2 + 3 + 5 * 4 - 8 / 2
 Multiplication and Division first: (5 * 4) => 20, (8 / 2) => 4, 
 Then Addition and Subtraction from left to right: (2 + 3) => 5, (5 + 20) => 25, (25 - 4) => 21.
 
-You can have three types of equations/expressions in this image, and only one case shall apply every time:
+You can have four types of equations/expressions in this image, and only one case shall apply every time:
 
 Following are the cases:
+Note: if the image does not contain any kind of equations or expression then do not try to run with the first two conditions directly try to answer them on the basis of 4th or 3rd case
 
 1. Simple mathematical expressions like 2 + 2, 3 * 4, 5 / 6, 7 - 8, etc.: In this case, solve and return the answer as JSON:
 {{
@@ -38,21 +39,20 @@ In this case solve them mathematically and return the solution as JSON format :
     "result": "calculated answer"
 }}
 
-4. Analyzing graphical math problems, such as cars colliding, trigonometric problems, problems on the Pythagorean theorem, adding runs from a cricket wagon wheel, etc.: In this case, analyze the drawing and accompanying information, and return the solution as JSON:
+3. Analyzing graphical math problems, such as cars colliding, trigonometric problems, problems on the Pythagorean theorem, adding runs from a cricket wagon wheel, etc.: In this case, analyze the drawing and accompanying information, and return the solution as JSON:
 {{
     "type": "graphical_math_problem",
     "problem": "description of the problem",
     "result": "calculated answer"
 }}
-5. Detecting abstract concepts represented in a drawing, such as love, hate, jealousy, patriotism, or a historic reference to war, invention, discovery, quote, etc.: In this case, return the abstract concept as JSON:
+4. Detecting abstract concepts represented in a drawing, such as love, hate, jealousy, patriotism, or a historic reference to war, invention, discovery, quote, etc.: In this case, return the abstract concept as JSON:
 {{
     "type": "abstract_concept",
     "description": "explanation of the drawing",
     "concept": "detected abstract concept"
 }}
 
-Analyze the equation or expression in this image and return the answer according to the given rules.
-
+Analyze the graphical image or equation or expression in this image and return the answer according to the given rules. 
 
 Return the answer strictly in the specified JSON format. Ensure proper key-value quoting for easier parsing with JSON parsers. Avoid any markdown or text formatting.
 """

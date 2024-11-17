@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import base64
 from io import BytesIO
 from PIL import Image
-from calculate import analyze_image
+from utils import analyze_image
 
 # Load environment variables
 load_dotenv()
@@ -59,7 +59,7 @@ class DiagramRequest(BaseModel):
     
 class ImageData(BaseModel):
     image: str
-    dict_of_vars: str
+    dict_of_vars: dict
 
 class DiagramResponse(BaseModel):
     mermaid_syntax: str
@@ -88,8 +88,12 @@ async def generate_mermaid(data: DiagramRequest):
 
 @app.post('/calculate')
 async def run(data: ImageData):
-    
-    responses = analyze_image(data.image,data.dict_of_vars)
-    print(responses)
-    # print('response in route: ', response)
-    return {"message": "Image processed", "data": responses, "status": "success"}
+    image_data = base64.b64decode(data.image.split(",")[1])  # Assumes data:image/png;base64,<data>
+    image_bytes = BytesIO(image_data)
+    image = Image.open(image_bytes)
+    responses = analyze_image(image, dict_of_vars=data.dict_of_vars)
+    data = []
+    for response in responses:
+        data.append(response)
+    print('response in route: ', response)
+    return {"message": "Image processed", "data": data, "status": "success"}
