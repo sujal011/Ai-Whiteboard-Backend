@@ -56,3 +56,15 @@ Here is a JSON object containing user-assigned variables. If the given expressio
 {a:10,b:10}
 
 Return the answer strictly in the specified JSON format. Ensure proper key-value quoting for easier parsing with JSON parsers. Avoid any markdown or text formatting.
+
+Note : at the place of calculated answer and calculated value only answer to the expression should be present 
+for example(if x and y is 3 and 4 respectively then) :
+{{
+     "type": "simple_expression",
+        "expression": "2x+y",
+        "result": 10
+}}
+
+Here is a JSON object containing user-assigned variables. If the given expression has any of these variables, use their actual values from this JSON object:
+
+{dict_of_vars}

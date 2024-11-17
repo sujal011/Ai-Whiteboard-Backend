@@ -1,9 +1,6 @@
-import ast
 import json
-from PIL import Image
 from dotenv import load_dotenv
 import os
-from langchain_groq import ChatGroq
 from prompt2 import get_prompt
 
 load_dotenv()
@@ -14,9 +11,9 @@ client = Groq(api_key=groq_api_key)
 
 
 def analyze_image(img: str, dict_of_vars: str):
-    prompt=get_prompt(dict_of_vars=dict_of_vars)
+    prompt=get_prompt()
     completion = client.chat.completions.create(
-    model="llama-3.2-11b-vision-preview",
+    model="llama-3.2-90b-vision-preview",
     messages=[
         {
             "role": "user",
