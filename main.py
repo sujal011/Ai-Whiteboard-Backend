@@ -5,6 +5,10 @@ from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 from fastapi.middleware.cors import CORSMiddleware
+import base64
+from io import BytesIO
+from PIL import Image
+from calculate import analyze_image
 
 # Load environment variables
 load_dotenv()
@@ -52,6 +56,10 @@ llm_chain = prompt_template | llm
 # Request and Response Models
 class DiagramRequest(BaseModel):
     prompt: str
+    
+class ImageData(BaseModel):
+    image: str
+    dict_of_vars: str
 
 class DiagramResponse(BaseModel):
     mermaid_syntax: str
@@ -76,3 +84,12 @@ async def generate_mermaid(data: DiagramRequest):
 
     # Return the Mermaid syntax as a response
     return DiagramResponse(mermaid_syntax=mermaid_syntax)
+
+
+@app.post('/calculate')
+async def run(data: ImageData):
+    
+    responses = analyze_image(data.image,data.dict_of_vars)
+    print(responses)
+    # print('response in route: ', response)
+    return {"message": "Image processed", "data": responses, "status": "success"}
