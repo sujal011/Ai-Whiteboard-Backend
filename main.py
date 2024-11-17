@@ -21,7 +21,7 @@ app.add_middleware(
 )
 
 # Retrieve Groq API key from environment variables
-groq_api_key = os.getenv("groq_api")
+groq_api_key = os.getenv("GROQ_API")
 
 # Initialize the LLM with ChatGroq
 llm = ChatGroq(
