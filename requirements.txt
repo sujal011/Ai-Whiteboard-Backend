@@ -6,3 +6,4 @@ langchain-groq
 langchain-core
 google-generativeai
 pillow
+uvicorn
