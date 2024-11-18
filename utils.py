@@ -36,13 +36,13 @@ def analyze_image(img: Image, dict_of_vars: dict):
         f"PROPERLY QUOTE THE KEYS AND VALUES IN THE DICTIONARY FOR EASIER PARSING WITH Python's ast.literal_eval."
     )
     response = model.generate_content([prompt, img])
-    print(response.text)
+    # print(response.text)
     answers = []
     try:
         answers = ast.literal_eval(response.text)
     except Exception as e:
         print(f"Error in parsing response from Gemini API: {e}")
-    print('returned answer ', answers)
+    # print('returned answer ', answers)
     for answer in answers:
         if 'assign' in answer:
             answer['assign'] = True
