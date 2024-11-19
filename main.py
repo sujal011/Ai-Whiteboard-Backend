@@ -72,6 +72,10 @@ class DiagramResponse(BaseModel):
 class AnswerData(BaseModel):
     result: str
 
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to AI Whiteboard Backend"}
+
 # Generate Mermaid Syntax Endpoint
 @app.post("/generate-mermaid", response_model=DiagramResponse)
 async def generate_mermaid(data: DiagramRequest):

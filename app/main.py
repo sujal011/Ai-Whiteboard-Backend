@@ -19,7 +19,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173","https://ai-whiteboard-frontend.vercel.app/"],  # Replace "*" with your frontend's origin, e.g., ["http://localhost:5173"]
+    allow_origins=["http://localhost:5173","https://ai-whiteboard-frontend.vercel.app"],  # Replace "*" with your frontend's origin, e.g., ["http://localhost:5173"]
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -71,6 +71,10 @@ class DiagramResponse(BaseModel):
     
 class AnswerData(BaseModel):
     result: str
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to AI Whiteboard Backend"}
 
 # Generate Mermaid Syntax Endpoint
 @app.post("/generate-mermaid", response_model=DiagramResponse)
