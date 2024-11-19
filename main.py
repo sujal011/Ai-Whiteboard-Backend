@@ -9,6 +9,7 @@ import base64
 from io import BytesIO
 from PIL import Image
 from utils import analyze_image
+from note_enhance import get_llm
 
 # Load environment variables
 load_dotenv()
@@ -57,12 +58,19 @@ llm_chain = prompt_template | llm
 class DiagramRequest(BaseModel):
     prompt: str
     
+class QuestionData(BaseModel):
+    question: str
+    
+    
 class ImageData(BaseModel):
     image: str
     dict_of_vars: dict
 
 class DiagramResponse(BaseModel):
     mermaid_syntax: str
+    
+class AnswerData(BaseModel):
+    result: str
 
 # Generate Mermaid Syntax Endpoint
 @app.post("/generate-mermaid", response_model=DiagramResponse)
@@ -97,3 +105,23 @@ async def run(data: ImageData):
         data.append(response)
     print('response in route: ', response)
     return {"message": "Image processed", "data": data, "status": "success"}
+
+@app.post("/ask-ai")
+async def generate_answer(data: QuestionData):
+    question = data.question
+    llm_chain = get_llm()
+
+    try:
+        # Invoke the LLM chain with the user input
+        response = llm_chain.invoke({'question': question})
+        result = response.get("result")
+        if not result:
+            raise ValueError("Invalid llm syntax received.")
+    
+    except Exception as e:
+        # Handle errors and return a meaningful message
+        return HTTPException(status_code=500, detail=f"Error generating answer syntax: {str(e)}")
+
+    # Return the Mermaid syntax as a response
+    print(response)
+    return response
