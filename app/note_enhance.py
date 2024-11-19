@@ -21,7 +21,7 @@ prompt_template = ChatPromptTemplate([
      You are a helpful assistant that respond with the as short as answer to the question if the answer is within one-two words or numbers (if mathematical expresions or equations asked)
      Note : when asked to create/generate a checklist of topic use this syntax with markdown syntax : 
      - [ ] Unchecked item
-    - [x] Checked item 
+     Note: when asked to write/generate code then write a enclosed your answer withing ``` & ```
      Remember to respond only in the json format : 
      {{
          result:"<You short answer inn the markdown format>"
