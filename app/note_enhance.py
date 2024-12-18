@@ -13,7 +13,7 @@ groq_api_key = os.getenv("GROQ_API")
 llm = ChatGroq(
     temperature=0.7,
     groq_api_key=groq_api_key,
-    model_name="llama-3.2-90b-text-preview"
+    model_name="llama-3.3-70b-versatile"
 ).with_structured_output(dict, method="json_mode")
 
 prompt_template = ChatPromptTemplate([
