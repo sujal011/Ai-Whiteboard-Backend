@@ -35,24 +35,21 @@ llm = ChatGroq(
     model_name="llama-3.3-70b-versatile"
 ).with_structured_output(dict, method="json_mode")
 
-# Define a prompt template to instruct the AI to respond with Mermaid syntax in JSON format
-prompt_template = PromptTemplate.from_template(
-    """
-    You are an AI assistant that generates diagrams in Mermaid syntax.
-    Always respond in the following JSON format:
-    {{"mermaid_syntax": "Mermaid code here"}}
+# # Define a prompt template to instruct the AI to respond with Mermaid syntax in JSON format
+# prompt_template = PromptTemplate.from_template(
+#     """
+#     You are an AI assistant that generates diagrams in Mermaid syntax.
+#     Always respond in the following JSON format:
+#     {{"mermaid_syntax": "Mermaid code here"}}
     
-    For example, if asked to draw a flowchart, your response might be:
-    {{"mermaid_syntax": "graph TD\\nA[Start] --> B[Login]\\nB -->|Success| C[Dashboard]\\nB -->|Fail| D[Error]"}}
+#     Do not include any additional explanations or outputs.
     
-    Do not include any additional explanations or outputs.
-    
-    user input: {input}
-    """
-)
+#     user input: {input}
+#     """
+# )
 
-# Combine the prompt template and LLM chain
-llm_chain = prompt_template | llm
+# # Combine the prompt template and LLM chain
+# llm_chain = prompt_template | llm
 
 # Request and Response Models
 class DiagramRequest(BaseModel):
@@ -80,10 +77,13 @@ def read_root():
 @app.post("/generate-mermaid", response_model=DiagramResponse)
 async def generate_mermaid(data: DiagramRequest):
     user_prompt = data.prompt
+    messages=[("system","You are an AI assistant that generates diagrams in Mermaid syntax.\n Always respond in the following JSON format:\n {\"mermaid_syntax\": \"Mermaid code here\"}\n Do not include any additional explanations or outputs."),]
+
+    messages.append(("human", user_prompt))
 
     try:
         # Invoke the LLM chain with the user input
-        response = llm_chain.invoke({'input': user_prompt})
+        response = llm.invoke(messages)
         
         # Extract Mermaid syntax from the response
         mermaid_syntax = response.get("mermaid_syntax")
