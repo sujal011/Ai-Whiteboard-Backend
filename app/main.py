@@ -19,7 +19,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173","https://ai-whiteboard-frontend.vercel.app","https://ai-whiteboard.vercel.app"],  # Replace "*" with your frontend's origin, e.g., ["http://localhost:5173"]
+    allow_origins=["*"],  # Replace "*" with your frontend's origin, e.g., ["http://localhost:5173"]
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
