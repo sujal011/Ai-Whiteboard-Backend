@@ -10,7 +10,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API")
 genai.configure(api_key=GEMINI_API_KEY)
 
 def analyze_image(img: Image, dict_of_vars: dict):
-    model = genai.GenerativeModel(model_name="gemini-1.5-pro-002",generation_config={
+    model = genai.GenerativeModel(model_name="gemini-2.0-flash",generation_config={
         "response_mime_type":"application/json"
     })
     dict_of_vars_str = json.dumps(dict_of_vars, ensure_ascii=False)
