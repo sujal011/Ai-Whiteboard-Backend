@@ -1,18 +1,25 @@
-import google.generativeai as genai
+import google.genai as genai
+from google.genai import types
 import ast
 import json
 from PIL import Image
 from dotenv import load_dotenv
 import os
+import base64
+from io import BytesIO
 
 load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API")
-genai.configure(api_key=GEMINI_API_KEY)
 
 def analyze_image(img: Image, dict_of_vars: dict):
-    model = genai.GenerativeModel(model_name="gemini-2.0-flash",generation_config={
-        "response_mime_type":"application/json"
-    })
+    # Create a client instance
+    client = genai.Client(api_key=GEMINI_API_KEY)
+    
+    # Convert PIL Image to bytes
+    img_byte_arr = BytesIO()
+    img.save(img_byte_arr, format='PNG')
+    img_byte_arr = img_byte_arr.getvalue()
+    
     dict_of_vars_str = json.dumps(dict_of_vars, ensure_ascii=False)
     prompt = (
         f"You have been given an image with some mathematical expressions, equations, or graphical problems, and you need to solve them. "
@@ -35,17 +42,46 @@ def analyze_image(img: Image, dict_of_vars: dict):
         f"DO NOT USE BACKTICKS OR MARKDOWN FORMATTING. "
         f"PROPERLY QUOTE THE KEYS AND VALUES IN THE DICTIONARY FOR EASIER PARSING WITH Python's ast.literal_eval."
     )
-    response = model.generate_content([prompt, img])
-    # print(response.text)
-    answers = []
+
+    # Create content with image and prompt
+    contents = [
+        types.Content(
+            role="user",
+            parts=[
+                types.Part.from_bytes(
+                    mime_type="image/png",
+                    data=img_byte_arr
+                ),
+                types.Part.from_text(text=prompt)
+            ]
+        )
+    ]
+
+    # Configure generation settings
+    generate_content_config = types.GenerateContentConfig(
+        response_mime_type="application/json"
+    )
+
     try:
+        # Generate content using the new API
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=contents,
+            config=generate_content_config
+        )
+        
+        # Parse the response
         answers = ast.literal_eval(response.text)
+        
+        # Process the answers
+        for answer in answers:
+            if 'assign' in answer:
+                answer['assign'] = True
+            else:
+                answer['assign'] = False
+                
+        return answers
+        
     except Exception as e:
-        print(f"Error in parsing response from Gemini API: {e}")
-    # print('returned answer ', answers)
-    for answer in answers:
-        if 'assign' in answer:
-            answer['assign'] = True
-        else:
-            answer['assign'] = False
-    return answers
+        print(f"Error in generating or parsing response from Gemini API: {e}")
+        return []

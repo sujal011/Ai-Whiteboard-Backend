@@ -1,9 +1,8 @@
 fastapi
 pydantic
 python-dotenv
+pillow
 langchain
 langchain-groq
 langchain-core
-google-generativeai
-pillow
-uvicorn
+google-genai

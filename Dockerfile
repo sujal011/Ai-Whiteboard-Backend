@@ -1,5 +1,5 @@
 # Use a smaller base image
-FROM python:3.8-slim
+FROM python:3.13-slim
 
 # Set the working directory
 WORKDIR /app
@@ -7,12 +7,14 @@ WORKDIR /app
 # Install Uvicorn
 RUN pip install --no-cache-dir uvicorn
 
-# Install dependencies separately to leverage caching
-COPY ./app/requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
+# Copy requirements first to leverage caching
+COPY ./app/requirements.txt requirements.txt
+
+# Install packages one by one with verbose output
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the application code
-COPY ./app /app
+COPY ./app .
 
 # Expose the default port
 EXPOSE 80
