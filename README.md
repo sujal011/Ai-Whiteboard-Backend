@@ -1,3 +1,18 @@
+## Now supports most of the mermaid diagram genration using deepseek (provided by groq)
+
+### Examples :
+![Screenshot 2025-06-05 235406](https://github.com/user-attachments/assets/5a8572f6-1028-4db6-9a89-a1f9715e8c31)
+
+![Screenshot 2025-06-06 000507](https://github.com/user-attachments/assets/190a392f-9fc3-4d4b-ba5e-118688854c54)
+
+![Screenshot 2025-06-06 000538](https://github.com/user-attachments/assets/c489f8fb-cb60-48cb-ad1a-4b0ab317cfad)
+
+![Screenshot 2025-06-06 000709](https://github.com/user-attachments/assets/5208f5f2-98cb-4b09-b508-bde6aea4f386)
+
+![Screenshot 2025-06-06 000819](https://github.com/user-attachments/assets/b6134f21-eb87-45ee-a446-d6b8142da311)
+
+
+
 ## How Data Flows with Models
 
 Let's revisit the flow from Chapter 1, now including the data model validation steps:
