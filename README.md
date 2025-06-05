@@ -15,8 +15,6 @@
 
 ## How Data Flows with Models
 
-Let's revisit the flow from Chapter 1, now including the data model validation steps:
-
 ```mermaid
 sequenceDiagram
     participant Frontend Browser
