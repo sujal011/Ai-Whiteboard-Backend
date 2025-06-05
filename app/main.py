@@ -126,9 +126,9 @@ async def run(data: ImageData):
         return {"message": "Image processed", "data": processed_data, "status": "success"}
         
     except HTTPException as he:
-        raise he
+        return {"message": f"Error: {he.detail}", "data": [], "status": "error"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        return {"message": f"Internal server error: {str(e)}", "data": [], "status": "error"}
 
 @app.post("/ask-ai")
 async def generate_answer(data: QuestionData):
