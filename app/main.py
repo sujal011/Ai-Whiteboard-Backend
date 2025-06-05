@@ -19,7 +19,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace "*" with your frontend's origin, e.g., ["http://localhost:5173"]
+    allow_origins=["https://ai-whiteboard.vercel.app", "http://localhost:5173"],  # Explicitly allow frontend domains
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -100,15 +100,35 @@ async def generate_mermaid(data: DiagramRequest):
 
 @app.post('/calculate')
 async def run(data: ImageData):
-    image_data = base64.b64decode(data.image.split(",")[1])  # Assumes data:image/png;base64,<data>
-    image_bytes = BytesIO(image_data)
-    image = Image.open(image_bytes)
-    responses = analyze_image(image, dict_of_vars=data.dict_of_vars)
-    data = []
-    for response in responses:
-        data.append(response)
-    print('response in route: ', response)
-    return {"message": "Image processed", "data": data, "status": "success"}
+    try:
+        # Validate input
+        if not data.image or not data.image.startswith('data:image/'):
+            raise HTTPException(status_code=400, detail="Invalid image data format")
+            
+        # Process image
+        try:
+            image_data = base64.b64decode(data.image.split(",")[1])
+            image_bytes = BytesIO(image_data)
+            image = Image.open(image_bytes)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error processing image: {str(e)}")
+            
+        # Analyze image
+        responses = analyze_image(image, dict_of_vars=data.dict_of_vars)
+        if not responses:
+            return {"message": "No results found", "data": [], "status": "success"}
+            
+        # Process responses
+        processed_data = []
+        for response in responses:
+            processed_data.append(response)
+            
+        return {"message": "Image processed", "data": processed_data, "status": "success"}
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.post("/ask-ai")
 async def generate_answer(data: QuestionData):
