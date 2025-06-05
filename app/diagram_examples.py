@@ -156,13 +156,6 @@ DIAGRAM_EXAMPLES = {
     }
 }
 
-def get_example_for_type(diagram_type: str) -> dict:
-    """Get the example and prompt for a specific diagram type."""
-    return DIAGRAM_EXAMPLES.get(diagram_type, {
-        "prompt": f"Create a {diagram_type} diagram",
-        "example": ""
-    })
-
 def get_all_examples() -> dict:
     """Get all diagram examples and prompts."""
     return DIAGRAM_EXAMPLES 

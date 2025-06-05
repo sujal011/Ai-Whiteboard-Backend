@@ -14,7 +14,10 @@ from fastapi.responses import JSONResponse
 import re
 import google.genai as genai
 from google.genai import types
-from diagram_examples import get_example_for_type, get_all_examples
+from diagram_examples import get_all_examples
+
+# Print to verify application start
+print("Application started")
 
 # Load environment variables
 load_dotenv()
@@ -37,7 +40,7 @@ groq_api_key = os.getenv("GROQ_API")
 llm = ChatGroq(
     temperature=0.7,
     groq_api_key=groq_api_key,
-    model_name="llama-3.3-70b-versatile"
+    model_name="deepseek-r1-distill-llama-70b"
 ).with_structured_output(dict, method="json_mode")
 
 # Initialize Gemini client
@@ -104,11 +107,7 @@ def validate_mermaid_syntax(mermaid_code: str) -> bool:
         return False
         
     # Remove any leading/trailing whitespace and newlines
-    code = mermaid_code.strip()
-    
-    # Check if it starts with a valid diagram type
-    if not any(code.lower().startswith(diagram_type) for diagram_type in VALID_DIAGRAM_TYPES):
-        return False    
+    code = mermaid_code.strip()   
             
     return True
 
@@ -116,16 +115,7 @@ def validate_mermaid_syntax(mermaid_code: str) -> bool:
 async def generate_mermaid(data: DiagramRequest):
     user_prompt = data.prompt
     
-    # Try to determine the diagram type from the prompt
-    diagram_type = None
-    for type_name in VALID_DIAGRAM_TYPES:
-        if type_name.lower() in user_prompt.lower():
-            diagram_type = type_name
-            break
-    
-    # Get example for the detected diagram type
-    example_data = get_example_for_type(diagram_type) if diagram_type else None
-    
+    example_data = get_all_examples()
     # Try Gemini first
     try:
         gemini_prompt = f"""You are an AI assistant that generates diagrams in Mermaid syntax.
@@ -154,65 +144,60 @@ async def generate_mermaid(data: DiagramRequest):
         9. For charts (pie, xy), include proper data formatting
         10. For git graphs, use proper branch and commit syntax"""
 
+        # Load all example formats into the system prompt
         if example_data:
-            gemini_prompt += f"""
-
-        Here is an example of a {diagram_type} diagram:
-        Prompt: {example_data['prompt']}
-        Example:
-        {example_data['example']}
-        
-        Use this as a reference for the syntax and structure, but create a new diagram based on the user's prompt."""
-
-        gemini_prompt += f"\n\nUser prompt: {user_prompt}"
+            gemini_prompt += "\n\nHere are some example diagrams for reference:\n"
+            for diagram_type, examples in example_data.items():
+                gemini_prompt += f"\n{diagram_type} diagram example:\n"
+                gemini_prompt += f"Prompt: {examples['prompt']}\n"
+                gemini_prompt += f"Example:\n{examples['example']}\n"
+                gemini_prompt += "Use these as references for syntax and structure, but create new diagrams based on the user's prompt.\n"
 
         # Configure generation settings for Gemini
         generate_content_config = types.GenerateContentConfig(
             response_mime_type="application/json"
         )
-
-        # Generate content using Gemini
+        # Generate content using Gemini with separate user prompt
         response = gemini_client.models.generate_content(
             model="gemini-2.0-flash",
-            contents=[types.Content(
-                role="user",
-                parts=[types.Part.from_text(text=gemini_prompt)]
-            )],
+            contents=[
+                types.Content(
+                    role="system",
+                    parts=[types.Part.from_text(text=gemini_prompt)]
+                ),
+                types.Content(
+                    role="user",
+                    parts=[types.Part.from_text(text=user_prompt)]
+                )
+            ],
             config=generate_content_config
         )
         
         # Parse the response
         mermaid_syntax = response.text
         if not mermaid_syntax:
+            print("Empty response from Gemini, falling back to Groq")
             raise ValueError("Empty response from Gemini")
             
         # Validate the Mermaid syntax
         if not validate_mermaid_syntax(mermaid_syntax):
+            print(f"Invalid Mermaid syntax from Gemini. Generated syntax:\n{mermaid_syntax}")
             raise ValueError("Invalid Mermaid syntax from Gemini")
             
         return DiagramResponse(mermaid_syntax=mermaid_syntax)
         
     except Exception as e:
-        # Check if it's a Gemini API error
-        if "503" in str(e) and "UNAVAILABLE" in str(e):
-            raise HTTPException(
-                status_code=503,
-                detail="Gemini API is currently overloaded. Please try again later."
-            )
-        # Check for API key expiration
+        # Print the error from Gemini
+        print(f"Gemini generation failed: {str(e)}")
         if "API_KEY_INVALID" in str(e) or "API key expired" in str(e):
-            raise HTTPException(
-                status_code=401,
-                detail="Gemini API key has expired. Please contact the administrator."
-            )
+            print("Gemini API key has expired")
+            
         print(f"Gemini generation failed: {str(e)}, falling back to Groq")
         
-        # Fallback to Groq if Gemini fails
-        messages=[
-            ("system", gemini_prompt),  # Use the same prompt we created for Gemini
+        messages = [
+            ("system", gemini_prompt),
+            ("human", user_prompt)
         ]
-
-        messages.append(("human", user_prompt))
 
         try:
             # Invoke the LLM chain with the user input
@@ -221,19 +206,25 @@ async def generate_mermaid(data: DiagramRequest):
             # Extract Mermaid syntax from the response
             mermaid_syntax = response.get("mermaid_syntax")
             if not mermaid_syntax:
+                print("Invalid response format from Groq")
                 raise HTTPException(
                     status_code=400,
                     detail="Invalid response format from AI model"
                 )
+            
+            # Replace escaped newlines with actual newlines
+            mermaid_syntax = mermaid_syntax.replace('\\n', '\n')
                 
             # Validate the Mermaid syntax
             if not validate_mermaid_syntax(mermaid_syntax):
+                print(f"Invalid Mermaid syntax from Groq. Generated syntax:\n{mermaid_syntax}")
                 raise HTTPException(
                     status_code=400,
-                    detail="Generated Mermaid syntax is invalid. Please try again with a different prompt."
+                    detail="Groq: Generated Mermaid syntax is invalid. Please try again with a different prompt."
                 )
         
         except Exception as e:
+            print(f"Groq generation failed: {str(e)}")
             if isinstance(e, HTTPException):
                 raise e
             raise HTTPException(
