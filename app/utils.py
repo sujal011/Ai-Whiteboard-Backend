@@ -84,4 +84,5 @@ def analyze_image(img: Image, dict_of_vars: dict):
         
     except Exception as e:
         print(f"Error in generating or parsing response from Gemini API: {e}")
-        return []
+        # Instead of returning empty list, raise the error to be handled by the endpoint
+        raise e
