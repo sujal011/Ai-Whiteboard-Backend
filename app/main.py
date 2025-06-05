@@ -119,14 +119,11 @@ async def run(data: ImageData):
             return {"message": "No results found", "data": [], "status": "success"}
             
         # Process responses
-        processed_data = []
+        data = []
         for response in responses:
-            processed_data.append(response)
-            
-        return {"message": "Image processed", "data": processed_data, "status": "success"}
-        
-    except HTTPException as he:
-        raise he
+            data.append(response)
+        print('response in route: ', response)
+        return {"message": "Image processed", "data": data, "status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
