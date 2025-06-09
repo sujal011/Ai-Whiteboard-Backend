@@ -11,7 +11,7 @@ groq_api_key = os.getenv("GROQ_API")
 
 # Initialize the LLM with ChatGroq
 llm = ChatGroq(
-    temperature=0.7,
+    temperature=0.5,
     groq_api_key=groq_api_key,
     model_name="llama-3.3-70b-versatile"
 ).with_structured_output(dict, method="json_mode")
@@ -24,12 +24,12 @@ prompt_template = ChatPromptTemplate([
      Note: when asked to write/generate code then write a enclosed your answer withing ``` & ```
      Remember to respond only in the json format : 
      {{
-         result:"<You short answer inn the markdown format>"
+         result:"<You short answer in the markdown format>"
      }}
      """),
     ("user", "{question}")
 ])
 
 def get_llm():
-    llm_chain = prompt_template | llm
-    return llm_chain
+    chain = prompt_template | llm
+    return chain

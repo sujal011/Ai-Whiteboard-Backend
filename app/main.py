@@ -296,27 +296,49 @@ async def run(data: ImageData):
 async def generate_answer(data: QuestionData):
     try:
         question = data.question
+        print(f"Received question: {question}")
+        
         llm_chain = get_llm()
 
-        # Invoke the LLM chain with the user input
-        response = llm_chain.invoke({'question': question})
-        result = response.get("result")
-        if not result:
+        try:
+            # Invoke the LLM chain with the user input
+            response = llm_chain.invoke({'question': question})
+            print(f"LLM Response: {response}")
+            
+            if not isinstance(response, dict):
+                print(f"Invalid response type: {type(response)}")
+                raise HTTPException(
+                    status_code=500,
+                    detail="Invalid response format from AI model"
+                )
+                
+            result = response.get("result")
+            if not result:
+                print("No result in response")
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid response format from AI model"
+                )
+        
+            return AnswerData(result=result)
+        
+        except Exception as e:
+            print(f"Error during LLM invocation: {str(e)}")
+            if "API" in str(e) and "key" in str(e).lower():
+                raise HTTPException(
+                    status_code=401,
+                    detail="AI service authentication failed"
+                )
             raise HTTPException(
-                status_code=400,
-                detail="Invalid response format from AI model"
+                status_code=500,
+                detail=f"Error generating answer: {str(e)}"
             )
     
-        return {
-            "status": "success",
-            "message": "Answer generated successfully",
-            "data": response
-        }
-    
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        if isinstance(e, HTTPException):
-            raise e
+        print(f"Unexpected error in ask-ai endpoint: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f"Error generating answer: {str(e)}"
+            detail="An unexpected error occurred. Please check server logs."
         )
