@@ -20,6 +20,9 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.1",
+    "@ai-sdk/google": "^2.0.2",
+    "@ai-sdk/openai": "^2.0.4",
     "@huggingface/inference": "4",
     "@langchain/community": "^0.3.49",
     "@langchain/qdrant": "^0.1.2",

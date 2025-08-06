@@ -190,48 +190,38 @@ class FileProcessor {
     }
   }
 
-//   async searchSimilarChunks(workspaceId: string, query: string, limit: number = 5) {
-//     try {
-//       const collectionName = `workspace_${workspaceId.replace(/-/g, '_')}`;
+  async searchSimilarChunks(workspaceId: string, query: string, limit: number = 5) {
+    try {
+      const collectionName = `workspace_${workspaceId.replace(/-/g, '_')}`;
 
-//       const qdrant = await QdrantVectorStore.fromExistingCollection(
-//         embeddingsModel,
-//         {
-//             collectionName:collectionName,
-//             url:process.env.QDRANT_URL!
-//         }
-//     )
-//     const similaritySearchResults = await qdrant.similaritySearch(
-//         query,limit,
-//       );
-//     //   // Create embedding for the query
-//     //   const queryEmbedding = await embeddings.embedQuery(query);
+      const qdrant = await QdrantVectorStore.fromExistingCollection(
+        embeddingsModel,
+        {
+            collectionName:collectionName,
+            url:process.env.QDRANT_URL!
+        }
+    )
+    
+    const similaritySearchResults = await qdrant.similaritySearch(
+        query,limit,
+      );
 
+    //   console.log(similaritySearchResults[0]?.metadata)
 
-      
-//     //   // Search in Qdrant
-//     //   const searchResult = await qdrantClient.search(collectionName, {
-//     //     vector: queryEmbedding,
-//     //     limit,
-//     //     with_payload: true,
-//     //     score_threshold: 0.7, // Minimum similarity threshold
-//     //   });
+    //   console.log(similaritySearchResults[0]?.metadata?.pdf)
+    //   console.log(similaritySearchResults[0]?.metadata?.pdf)
 
-//       return similaritySearchResults.map(result => ({
-//         content: result.payload?.content,
-//         filename: result.payload?.filename,
-//         score: result.score,
-//         metadata: {
-//           file_type: result.payload?.file_type,
-//           chunk_index: result.payload?.chunk_index,
-//           created_at: result.payload?.created_at,
-//         },
-//       }));
-//     } catch (error) {
-//       console.error('Search error:', error);
-//       throw new Error('Failed to search similar content');
-//     }
-//   }
+      return similaritySearchResults.map(result => ({
+        content: result.pageContent,
+        filename: result.metadata?.pdf.info?.Title,
+        loc:result.metadata?.loc,
+        metadata: result.metadata
+      }));
+    } catch (error) {
+      console.error('Search error:', error);
+      throw new Error('Failed to search similar content');
+    }
+  }
 }
 
 export const fileProcessor = new FileProcessor();

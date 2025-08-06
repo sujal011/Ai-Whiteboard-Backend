@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { authRoutes } from "./routes/auth";
 import { workspaceRoutes } from "./routes/workspaces";
+import { aiRoutes } from "./routes/ai";
 
 const app = new Hono();
 
@@ -22,6 +23,7 @@ app.get('/health', (c) => {
 
 app.route('/auth', authRoutes);
 app.route('/workspaces',workspaceRoutes)
+app.route('/ai',aiRoutes)
 
 // Error handler
 app.onError((err, c) => {
