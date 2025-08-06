@@ -108,7 +108,7 @@ workspaceRoutes.get('/:id', async (c) => {
         excalidraw_data:workspace.excalidraw_data,
         editorjs_data: workspace.editorjs_data
       },
-      files: processedFiles.map(f => ({
+      files: processedFiles.length === 0? []: processedFiles.map(f => ({
         id: f.id,
         filename: f.filename,
         file_size: f.file_size,

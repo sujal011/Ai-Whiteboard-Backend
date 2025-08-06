@@ -8,13 +8,11 @@ import * as XLSX from 'xlsx';
 
 const qdrantClient = new QdrantClient({
   url: process.env.QDRANT_URL || 'http://localhost:6333',
-  apiKey: process.env.QDRANT_API_KEY,
 });
 
 const embeddingsModel = new HuggingFaceInferenceEmbeddings({
-//   apiKey: "", // Defaults to process.env.HUGGINGFACEHUB_API_KEY
   model: "sentence-transformers/all-MiniLM-l6-v2", // Defaults to `BAAI/bge-base-en-v1.5` if not provided
-//   provider: "MODEL-PROVIDER", // Falls back to auto selection mechanism within Hugging Face's inference API if not provided
+//   provider: "", // Falls back to auto selection mechanism within Hugging Face's inference API if not provided
 });
 
 const textSplitter = new RecursiveCharacterTextSplitter({
@@ -40,7 +38,7 @@ class FileProcessor {
         // Create collection with proper vector configuration
         await qdrantClient.createCollection(collectionName, {
           vectors: {
-            size: 1536, // OpenAI embedding size for text-embedding-3-small
+            size: 384, // OpenAI embedding size for text-embedding-3-small
             distance: 'Cosine',
           },
         });

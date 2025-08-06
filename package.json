@@ -20,6 +20,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@huggingface/inference": "4",
     "@langchain/community": "^0.3.49",
     "@langchain/qdrant": "^0.1.2",
     "@langchain/textsplitters": "^0.1.0",

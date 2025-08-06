@@ -98,9 +98,9 @@ export const dbHelpers = {
   },
 
   async getProcessedFiles(workspaceId: string) {
-    return await db.select().from(processedFilesTable).where(eq(workspacesTable.id,workspaceId))
-    .orderBy(desc(workspacesTable.updated_at))
-    
+    const processedFiles = await db.select().from(processedFilesTable).where(eq(processedFilesTable.workspace_id,workspaceId))
+    .orderBy(desc(processedFilesTable.processed_at))
+    return processedFiles;
     // `
     //   SELECT * FROM processed_files 
     //   WHERE workspace_id = ${workspaceId}
