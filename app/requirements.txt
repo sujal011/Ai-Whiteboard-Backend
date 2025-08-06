@@ -1,8 +1,0 @@
-fastapi
-pydantic
-python-dotenv
-pillow
-langchain
-langchain-groq
-langchain-core
-google-genai

@@ -1,0 +1,38 @@
+{
+  "name": "ai-whiteboard-backend",
+  "module": "index.ts",
+  "scripts": {
+    "dev": "bun run --env-file=.env --watch src/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
+  },
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/bun": "latest",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/pdf-parse": "^1.1.5",
+    "drizzle-kit": "^0.31.4"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@langchain/community": "^0.3.49",
+    "@langchain/qdrant": "^0.1.2",
+    "@langchain/textsplitters": "^0.1.0",
+    "@qdrant/js-client-rest": "^1.15.0",
+    "ai": "^5.0.4",
+    "bcrypt": "^6.0.0",
+    "drizzle-orm": "^0.44.4",
+    "hono": "^4.8.12",
+    "jsonwebtoken": "^9.0.2",
+    "mammoth": "^1.10.0",
+    "pdf-parse": "^1.1.1",
+    "postgres": "^3.4.7",
+    "xlsx": "^0.18.5",
+    "zod": "^4.0.15"
+  }
+}
