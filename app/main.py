@@ -40,7 +40,7 @@ groq_api_key = os.getenv("GROQ_API")
 llm = ChatGroq(
     temperature=0.7,
     groq_api_key=groq_api_key,
-    model_name="deepseek-r1-distill-llama-70b"
+    model_name="qwen/qwen3-32b"
 ).with_structured_output(dict, method="json_mode")
 
 # Initialize Gemini client
