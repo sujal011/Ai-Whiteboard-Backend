@@ -60,7 +60,7 @@ def generate_mermaid_syntax(prompt: str) -> str:
     try:
         generate_content_config = types.GenerateContentConfig(response_mime_type="application/json")
         response = gemini_client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-flash-lite-latest",
             contents=[
                 types.Content(role="system", parts=[types.Part.from_text(text=gemini_prompt)]),
                 types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
@@ -71,7 +71,7 @@ def generate_mermaid_syntax(prompt: str) -> str:
     except Exception as e:
         # Fallback to Groq
         chat_prompt = ChatPromptTemplate.from_messages([
-            ("system", gemini_prompt),
+            ("system", gemini_prompt.replace("{", "{{").replace("}", "}}")),
             ("human", "{prompt}")
         ])
         chain = chat_prompt | groq_llm.with_structured_output(dict, method="json_mode")
@@ -136,7 +136,7 @@ def analyze_excalidraw_image(image_base64: str, dict_of_vars: dict = None, promp
     try:
         generate_content_config = types.GenerateContentConfig(response_mime_type="application/json")
         response = gemini_client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-flash-lite-latest",
             contents=contents,
             config=generate_content_config
         )
