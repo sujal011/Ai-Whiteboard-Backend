@@ -7,6 +7,11 @@ load_dotenv()
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "AI Whiteboard API"
+
+     # ── Server ───────────────────────────────────────────────────────────
+    host: str = "0.0.0.0"
+    port: int = 8000
+    allowed_origins: str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000")
     
     # Database
     DATABASE_URL: str = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DB_NAME')}"
