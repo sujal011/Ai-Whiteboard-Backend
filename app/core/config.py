@@ -14,11 +14,17 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str = os.getenv("SECRET_KEY")
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * os.getenv("ACCESS_TOKEN_EXPIRE_DAYS") # 1 days
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS", "1")) # 1 days
     
     # API Keys
     GROQ_API_KEY: Optional[str] = os.getenv("GROQ_API_KEY")
     GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY")
+    
+    # ── Embeddings ────────────────────────────────────────────────────────
+    embedding_model: str = os.getenv("EMBEDDING_MODEL")
+
+    embedding_model_device: str = os.getenv("EMBEDDING_MODEL_DEVICE")
+    embedding_model_normalize: bool = os.getenv("NORMALIZE_EMBEDDINGS")
 
     class Config:
         env_file = ".env"

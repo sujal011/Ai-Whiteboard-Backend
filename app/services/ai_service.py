@@ -9,8 +9,7 @@ from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_postgres import PGVector
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
+
 
 from app.core.config import settings
 import google.genai as genai
@@ -19,26 +18,17 @@ from app.api.deps import get_db
 
 # LLM setup
 groq_llm = ChatGroq(
-    temperature=0.7,
     model_name="qwen/qwen3-32b",
     groq_api_key=settings.GROQ_API_KEY
 )
 
 gemini_llm = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash",
-    google_api_key=settings.GEMINI_API_KEY,
-    temperature=0.7
+    model="gemini-flash-lite-latest",
 )
 
 gemini_client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
-embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=settings.GEMINI_API_KEY)
-vectorstore = PGVector(
-    embeddings=embeddings,
-    collection_name="workspace_documents",
-    connection=settings.DATABASE_URL,
-    use_jsonb=True,
-)
+from app.rag.vectorstore import get_vectorstore
 
 def generate_mermaid_syntax(prompt: str) -> str:
     gemini_prompt = """You are an AI assistant that generates diagrams in Mermaid syntax.
@@ -89,25 +79,29 @@ def generate_mermaid_syntax(prompt: str) -> str:
         return res.get("mermaid_syntax")
 
 def answer_from_documents(question: str, workspace_id: int) -> str:
-    retriever = vectorstore.as_retriever(search_kwargs={"filter": {"workspace_id": workspace_id}})
+    # Use the vector store directly instead of deprecated chains
+    docs = get_vectorstore().similarity_search(
+        question, 
+        k=4, 
+        filter={"workspace_id": workspace_id}
+    )
+    
+    context = "\n\n".join([doc.page_content for doc in docs])
     
     system_prompt = (
         "You are an assistant for question-answering tasks. "
         "Use the following pieces of retrieved context to answer the question. "
         "If you don't know the answer, say that you don't know. "
         "Use three sentences maximum and keep the answer concise."
-        "\n\nContext:\n{context}"
+        f"\n\nContext:\n{context}"
     )
-    prompt = ChatPromptTemplate.from_messages([
+    
+    response = gemini_llm.invoke([
         ("system", system_prompt),
-        ("human", "{input}"),
+        ("human", question),
     ])
     
-    question_answer_chain = create_stuff_documents_chain(gemini_llm, prompt)
-    rag_chain = create_retrieval_chain(retriever, question_answer_chain)
-    
-    response = rag_chain.invoke({"input": question})
-    return response["answer"]
+    return response.content
 
 def analyze_excalidraw_image(image_base64: str, dict_of_vars: dict = None, prompt: str = None) -> list:
     img_data = base64.b64decode(image_base64.split(",")[1] if "," in image_base64 else image_base64)
