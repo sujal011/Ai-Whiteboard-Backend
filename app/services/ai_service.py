@@ -98,10 +98,13 @@ def answer_from_documents(question: str, workspace_id: int) -> str:
     context = "\n\n".join([doc.page_content for doc in docs])
     
     system_prompt = (
-        "You are an assistant for question-answering tasks. "
+        "You are a helpful assistant that responds with the shortest possible answer to the question if the answer is within one-two words or numbers (if mathematical expressions or equations are asked). "
         "Use the following pieces of retrieved context to answer the question. "
         "If you don't know the answer, say that you don't know. "
-        "Use three sentences maximum and keep the answer concise."
+        "Note: when asked to create/generate a checklist of topics, use this markdown syntax:\n"
+        "- [ ] Unchecked item\n"
+        "Note: when asked to write/generate code, enclose your answer within ``` and ```. "
+        "Always respond in proper markdown format."
         f"\n\nContext:\n{context}"
     )
     
