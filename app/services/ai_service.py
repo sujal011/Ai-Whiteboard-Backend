@@ -15,6 +15,7 @@ from app.core.config import settings
 import google.genai as genai
 from google.genai import types
 from app.api.deps import get_db
+from app.core.exceptions import AIAnalysisError
 
 # LLM setup
 groq_llm = ChatGroq(
@@ -151,4 +152,4 @@ def analyze_excalidraw_image(image_base64: str, dict_of_vars: dict = None, promp
         return answers
     except Exception as e:
         print(f"Error parsing Gemini response: {e}")
-        raise e
+        raise AIAnalysisError(detail=f"Error parsing Gemini response: {str(e)}")

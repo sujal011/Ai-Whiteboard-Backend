@@ -8,6 +8,7 @@ from app.models.document import Document
 from app.services.workspace_service import get_workspace
 from app.rag.vectorstore import get_vectorstore
 from app.core.logging import setup_logger
+from app.core.exceptions import UnsupportedFileTypeError
 
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -40,7 +41,7 @@ def process_and_save_document(db: Session, workspace_id: int, user_id: int, file
             logger.info("Using TextLoader")
         else:
             logger.error(f"Unsupported file type: {file.filename}")
-            raise HTTPException(status_code=400, detail="Unsupported file type")
+            raise UnsupportedFileTypeError(detail=f"Unsupported file type: {file.filename}")
             
         docs = loader.load()
         logger.info(f"Loaded {len(docs)} pages/sections from document.")
