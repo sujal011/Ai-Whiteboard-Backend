@@ -1,21 +1,27 @@
 import os
 import base64
+import logging
 from io import BytesIO
 from PIL import Image
 import json
 import ast
 
+logger = logging.getLogger(__name__)
+
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_postgres import PGVector
 
 
 from app.core.config import settings
-import google.genai as genai
-from google.genai import types
 from app.api.deps import get_db
 from app.core.exceptions import AIAnalysisError
+
+# Ensure GOOGLE_API_KEY is set for langchain-google-genai
+if not os.environ.get("GOOGLE_API_KEY") and settings.GEMINI_API_KEY:
+    os.environ["GOOGLE_API_KEY"] = settings.GEMINI_API_KEY
 
 # LLM setup
 groq_llm = ChatGroq(
@@ -27,11 +33,17 @@ gemini_llm = ChatGoogleGenerativeAI(
     model="gemini-flash-lite-latest",
 )
 
-gemini_client = genai.Client(api_key=settings.GEMINI_API_KEY)
-
 from app.rag.vectorstore import get_vectorstore
 
 def generate_mermaid_syntax(prompt: str) -> str:
+    # ── Primary: deepagents-powered mermaid agent ──
+    try:
+        from app.services.mermaid_agent_service import generate_mermaid_with_agent
+        return generate_mermaid_with_agent(prompt)
+    except Exception as e:
+        logger.warning("DeepAgent mermaid generation failed, falling back to direct LLM: %s", e)
+
+    # ── Fallback: direct Gemini/Groq call ──
     gemini_prompt = """You are an AI assistant that generates diagrams in Mermaid syntax.
     You can create various types of diagrams that are supported by Excalidraw:
     1. Flowcharts (graph/flowchart) - For process flows, decision trees, etc.
@@ -59,16 +71,12 @@ def generate_mermaid_syntax(prompt: str) -> str:
     10. For git graphs, use proper branch and commit syntax"""
 
     try:
-        generate_content_config = types.GenerateContentConfig(response_mime_type="application/json")
-        response = gemini_client.models.generate_content(
-            model="gemini-flash-lite-latest",
-            contents=[
-                types.Content(role="system", parts=[types.Part.from_text(text=gemini_prompt)]),
-                types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
-            ],
-            config=generate_content_config
-        )
-        return json.loads(response.text)["mermaid_syntax"]
+        chain = gemini_llm.with_structured_output(dict, method="json_mode")
+        response = chain.invoke([
+            SystemMessage(content=gemini_prompt),
+            HumanMessage(content=prompt),
+        ])
+        return response.get("mermaid_syntax")
     except Exception as e:
         # Fallback to Groq
         chat_prompt = ChatPromptTemplate.from_messages([
@@ -124,24 +132,20 @@ def analyze_excalidraw_image(image_base64: str, dict_of_vars: dict = None, promp
         f"PROPERLY QUOTE THE KEYS AND VALUES IN THE DICTIONARY FOR EASIER PARSING WITH Python's ast.literal_eval."
     )
 
-    contents = [
-        types.Content(
-            role="user",
-            parts=[
-                types.Part.from_bytes(mime_type="image/png", data=img_byte_arr),
-                types.Part.from_text(text=sys_prompt)
-            ]
-        )
-    ]
+    # Encode image as base64 data URL for langchain multimodal
+    img_b64 = base64.b64encode(img_byte_arr).decode("utf-8")
+    image_url = f"data:image/png;base64,{img_b64}"
+
+    message = HumanMessage(
+        content=[
+            {"type": "image_url", "image_url": {"url": image_url}},
+            {"type": "text", "text": sys_prompt},
+        ]
+    )
 
     try:
-        generate_content_config = types.GenerateContentConfig(response_mime_type="application/json")
-        response = gemini_client.models.generate_content(
-            model="gemini-flash-lite-latest",
-            contents=contents,
-            config=generate_content_config
-        )
-        answers = ast.literal_eval(response.text)
+        response = gemini_llm.invoke([message])
+        answers = ast.literal_eval(response.content)
         
         for answer in answers:
             if 'assign' in answer:
